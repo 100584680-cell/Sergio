@@ -408,9 +408,12 @@
     .goal-banner span {
       font-family: var(--f-display);
       font-weight: 800;
-      font-size: clamp(2.4rem, 9vw, 4.6rem);
+      font-size: clamp(1.2rem, 4.8vw, 2.7rem);
+      line-height: 1.15;
       letter-spacing: -.03em;
-      padding: 10px 26px;
+      padding: 10px 22px;
+      max-width: calc(100% - 28px);
+      text-align: center;
       border-radius: 999px;
       background: var(--grad);
       color: #fff;
@@ -425,8 +428,10 @@
       transform: translateX(-50%);
       z-index: 4;
       pointer-events: none;
-      white-space: nowrap;
-      font-size: .78rem;
+      width: max-content;
+      max-width: calc(100% - 24px);
+      text-align: center;
+      font-size: .76rem;
       font-weight: 700;
       color: rgba(255, 255, 255, .88);
       padding: 5px 13px;
@@ -434,6 +439,12 @@
       background: rgba(0, 0, 0, .42);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
+      transition: opacity .3s;
+    }
+
+    .is-offscreen .track,
+    .is-offscreen .ribbon-track {
+      animation-play-state: paused !important;
     }
 
     .wrap {
@@ -1720,8 +1731,8 @@
       display: grid;
       justify-items: center;
       gap: 1px;
-      min-width: 64px;
-      padding: 8px 10px;
+      min-width: clamp(52px, 14vw, 64px);
+      padding: 8px clamp(7px, 2.2vw, 10px);
       border-radius: 999px;
       font-size: .66rem;
       font-weight: 800;
@@ -2758,14 +2769,27 @@
         r.innerHTML = items.map(v => `<span>${v}</span>`).join('');
       })();
 
-      /* ---------- Reveal on scroll ---------- */
+      /* ---------- Reveal on scroll + pausa de animaciones fuera de pantalla ---------- */
       const io = 'IntersectionObserver' in window
         ? new IntersectionObserver(entries => entries.forEach(e => {
-          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+          if (e.isIntersecting) {
+            e.target.classList.add('in');
+            if (e.target.classList.contains('tile')) {
+              setTimeout(() => { e.target.style.transitionDelay = '0ms'; }, 900);
+            }
+            io.unobserve(e.target);
+          }
         }), { rootMargin: '0px 0px -6% 0px', threshold: 0.06 })
         : null;
       const reveal = el => io ? io.observe(el) : el.classList.add('in');
       $$('.reveal').forEach(reveal);
+
+      if ('IntersectionObserver' in window) {
+        const animIo = new IntersectionObserver(entries => entries.forEach(e => {
+          e.target.classList.toggle('is-offscreen', !e.isIntersecting);
+        }), { rootMargin: '100px 0px' });
+        $$('#top, .ribbon').forEach(el => animIo.observe(el));
+      }
 
       /* =================================================================
          GALERÍA BENTO
@@ -2775,6 +2799,7 @@
       let tileCount = 0;
 
       function sizeGrid() {
+        if (!grid.clientWidth) return;
         const cs = getComputedStyle(grid);
         const cols = cs.gridTemplateColumns.split(' ').filter(Boolean).length || 2;
         const gap = parseFloat(cs.columnGap) || 0;
@@ -2789,6 +2814,7 @@
         let raf = 0;
         el.addEventListener('pointermove', e => {
           const r = el.getBoundingClientRect();
+          if (!r.width || !r.height) return;
           const x = (e.clientX - r.left) / r.width - 0.5;
           const y = (e.clientY - r.top) / r.height - 0.5;
           cancelAnimationFrame(raf);
@@ -2798,7 +2824,7 @@
             el.style.setProperty('--mx', ((x + 0.5) * 100).toFixed(1) + '%');
             el.style.setProperty('--my', ((y + 0.5) * 100).toFixed(1) + '%');
           });
-        });
+        }, { passive: true });
         el.addEventListener('pointerleave', () => {
           cancelAnimationFrame(raf);
           el.style.setProperty('--rx', '0deg');
@@ -2850,8 +2876,16 @@
          LIGHTBOX
          ================================================================= */
       const lb = { el: $('#lb'), img: $('#lbImg'), cap: $('#lbCap'), count: $('#lbCount'), list: [], i: 0, last: null, open: false };
+      const matchEl = $('#match');
+      const dlg = $('#planDlg');
 
-      function lockScroll(on) { root.style.overflow = on ? 'hidden' : ''; }
+      function lockScroll(on) {
+        if (on) {
+          root.style.overflow = 'hidden';
+        } else if (!lb.open && matchEl.hidden && (!dlg || !dlg.open)) {
+          root.style.overflow = '';
+        }
+      }
 
       function openLightbox(photo) {
         lb.list = livePhotos();
@@ -2889,7 +2923,7 @@
         if (!lb.open) return;
         lb.open = false;
         lb.el.classList.remove('open');
-        setTimeout(() => { lb.el.hidden = true; }, 300);
+        setTimeout(() => { lb.el.hidden = true; lockScroll(false); }, 300);
         lockScroll(false);
         if (lb.last && lb.last.focus) lb.last.focus({ preventScroll: true });
       }
@@ -2899,14 +2933,15 @@
 
       (function lbGestures() {
         const stage = $('#lbStage');
-        let sx = null, sy = 0, dx = 0, dy = 0;
+        let sx = null, sy = 0, dx = 0, dy = 0, pid = null;
         stage.addEventListener('pointerdown', e => {
-          sx = e.clientX; sy = e.clientY; dx = dy = 0;
+          if (!e.isPrimary) return;
+          sx = e.clientX; sy = e.clientY; dx = dy = 0; pid = e.pointerId;
           lb.img.style.transition = 'none';
-          stage.setPointerCapture(e.pointerId);
+          try { stage.setPointerCapture(e.pointerId); } catch (_) { }
         });
         stage.addEventListener('pointermove', e => {
-          if (sx === null) return;
+          if (sx === null || e.pointerId !== pid) return;
           dx = e.clientX - sx; dy = e.clientY - sy;
           if (Math.abs(dy) > Math.abs(dx) && dy > 0) {
             lb.img.style.transform = `translateY(${dy}px) scale(${1 - Math.min(dy, 300) / 1200})`;
@@ -2915,16 +2950,18 @@
             lb.img.style.transform = `translateX(${dx}px) rotate(${dx * 0.02}deg)`;
           }
         });
-        const end = () => {
-          if (sx === null) return;
-          sx = null;
+        const end = e => {
+          if (sx === null || (e && e.pointerId !== undefined && e.pointerId !== pid)) return;
+          const tapX = sx;
+          sx = null; pid = null;
           lb.img.style.transition = '';
           lb.img.style.transform = '';
           lb.el.style.background = '';
           if (dy > 110 && Math.abs(dy) > Math.abs(dx)) closeLb();
           else if (Math.abs(dx) > 55) stepLb(dx < 0 ? 1 : -1);
-          else if (Math.abs(dx) < 6 && Math.abs(dy) < 6 && !finePointer) {
-            // toque: mitad derecha avanza, izquierda retrocede
+          else if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && !finePointer) {
+            // En móvil: tocar mitad derecha avanza, mitad izquierda retrocede
+            stepLb(tapX > innerWidth * 0.5 ? 1 : -1);
           }
         };
         stage.addEventListener('pointerup', end);
@@ -2949,7 +2986,7 @@
         c.style.setProperty('--d', depth);
         c._photo = p;
         c.innerHTML = `
-      <img src="${esc(p.src)}" alt="Sergio Magdaleno" draggable="false">
+      <img src="${esc(p.src)}" alt="Sergio Magdaleno" draggable="false" decoding="async">
       <div class="card-shade"></div>
       <div class="card-bars"><i></i><i></i><i></i><i></i></div>
       <span class="stamp like">LIKE</span>
@@ -2996,22 +3033,22 @@
         if (card._bound) return;
         card._bound = true;
         card.classList.add('top');
-        let sx = 0, sy = 0, dx = 0, dy = 0, dragging = false;
+        let sx = 0, sy = 0, dx = 0, dy = 0, dragging = false, pid = null;
         card.addEventListener('pointerdown', e => {
-          if (deck.busy) return;
-          dragging = true; sx = e.clientX; sy = e.clientY; dx = dy = 0;
-          card.setPointerCapture(e.pointerId);
+          if (!e.isPrimary || deck.busy) return;
+          dragging = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; pid = e.pointerId;
+          try { card.setPointerCapture(e.pointerId); } catch (_) { }
           card.style.transition = 'none';
         });
         card.addEventListener('pointermove', e => {
-          if (!dragging) return;
+          if (!dragging || e.pointerId !== pid) return;
           dx = e.clientX - sx; dy = e.clientY - sy;
           card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.06}deg)`;
           setStamps(card, dx, dy);
         });
-        const end = () => {
-          if (!dragging) return;
-          dragging = false;
+        const end = e => {
+          if (!dragging || (e && e.pointerId !== undefined && e.pointerId !== pid)) return;
+          dragging = false; pid = null;
           card.style.transition = '';
           const th = stack.clientWidth * 0.28;
           if (dx > th) swipe('like');
@@ -3021,6 +3058,7 @@
         };
         card.addEventListener('pointerup', end);
         card.addEventListener('pointercancel', end);
+        card.addEventListener('lostpointercapture', end);
       }
 
       function swipe(type) {
@@ -3114,24 +3152,28 @@
 
       function escapeNope(mx, my) {
         const now = performance.now();
-        if (now - lastEscapeAt < 90) return;
+        if (now - lastEscapeAt < 85) return;
         lastEscapeAt = now;
 
         const baseRect = nopeBtn.getBoundingClientRect();
         const origCx = (baseRect.left + baseRect.width / 2) - nopeX;
         const origCy = (baseRect.top + baseRect.height / 2) - nopeY;
+        const halfW = baseRect.width / 2 + 12;
+        const minX = halfW - origCx;
+        const maxX = innerWidth - halfW - origCx;
 
-        // Elige una posición aleatoria dentro de un radio amplio que quede lejos del cursor
+        // Elige una posición aleatoria dentro de la pantalla que quede lejos del cursor
         let bestX = 0, bestY = 0, bestDist = -1;
-        for (let k = 0; k < 10; k++) {
-          const candX = (Math.random() - 0.35) * 260; // entre -90px y +170px
-          const candY = -20 - Math.random() * 145;    // salta hacia arriba (-20px a -165px)
+        for (let k = 0; k < 12; k++) {
+          const rawX = (Math.random() - 0.35) * 260;
+          const candX = Math.max(minX, Math.min(maxX, rawX));
+          const candY = -20 - Math.random() * 145; // salta hacia arriba (-20px a -165px)
           const cx = origCx + candX;
           const cy = origCy + candY;
           const d = (mx !== undefined && my !== undefined)
             ? Math.hypot(cx - mx, cy - my)
             : Math.hypot(candX - nopeX, candY - nopeY);
-          if (d > bestDist && Math.hypot(candX - nopeX, candY - nopeY) > 65) {
+          if (d > bestDist && Math.hypot(candX - nopeX, candY - nopeY) > 55) {
             bestDist = d;
             bestX = candX;
             bestY = candY;
@@ -3143,10 +3185,13 @@
         const rot = (bestX >= 0 ? 1 : -1) * (10 + Math.random() * 18);
         nopeBtn.style.transform = `translate(${nopeX.toFixed(0)}px, ${nopeY.toFixed(0)}px) rotate(${rot.toFixed(0)}deg)`;
 
-        clearTimeout(nopeBtn._t);
-        nopeBtn._t = setTimeout(resetNopePos, 2400);
-
         deck.escapes++;
+        const limit = finePointer ? MAX_ESCAPES_HOVER : MAX_ESCAPES_TAP;
+        clearTimeout(nopeBtn._t);
+        if (deck.escapes < limit) {
+          nopeBtn._t = setTimeout(resetNopePos, 2400);
+        }
+
         if (deck.escapes === 1 || deck.escapes % 2 === 0) {
           toast(escapeLines[(deck.escapes - 1) % escapeLines.length], 2200);
         }
@@ -3204,7 +3249,6 @@
       }
 
       /* ---------- Match overlay ---------- */
-      const matchEl = $('#match');
       let matchLast = null;
       function showMatch() {
         const p = deck.lastLiked || livePhotos()[0];
@@ -3219,8 +3263,7 @@
       }
       function closeMatch() {
         matchEl.classList.remove('open');
-        setTimeout(() => { matchEl.hidden = true; }, 400);
-        lockScroll(false);
+        setTimeout(() => { matchEl.hidden = true; lockScroll(false); }, 400);
         if (matchLast && matchLast.focus) matchLast.focus({ preventScroll: true });
       }
       $('#matchClose').addEventListener('click', closeMatch);
@@ -3248,8 +3291,8 @@
         let movedGoals = 0;
         let shooting = false;
         let aiming = false;
-        let startX = 0, startY = 0;
-        let targetX = 0, targetY = 0;
+        let activePid = null;
+        let lastBallX = 0, lastBallY = 0;
 
         const normalGoalMsgs = [
           'Directo a la escuadra 🎯 Calidad de Cuéllar.',
@@ -3294,10 +3337,10 @@
             ty = m.gBottom - m.gh * (0.35 + Math.random() * 0.45);
           }
 
-          // Limitar a los bordes visibles del campo para que siempre se vea la portería alcanzarlo
-          const padX = Math.max(44, m.gw * 0.28);
-          const padTop = 36;
-          const maxBottom = m.by - 65;
+          // Limitar para que la portería y su cartel superior siempre quepan completos dentro del campo
+          const padX = Math.max(36, m.gw * 0.24);
+          const padTop = 52;
+          const maxBottom = m.by - 70;
           tx = Math.max(padX, Math.min(m.w - padX, tx));
           ty = Math.max(padTop, Math.min(maxBottom, ty));
           return { tx, ty, m };
@@ -3332,12 +3375,21 @@
           let shiftX = 0;
           let shiftY = 0;
           if (isOutside) {
-            // Desplazar la portería para que el balón entre clavado en la red
-            shiftX = tx - m.gx;
+            // Desplazar la portería sin que se salga de los bordes del estadio
+            const maxShiftX = Math.max(0, m.w * 0.5 - m.gw * 0.5 - 10);
+            shiftX = Math.max(-maxShiftX, Math.min(maxShiftX, tx - m.gx));
+
             const idealNetY = m.gBottom - m.gh * 0.48;
             if (!inVert) {
-              shiftY = ty - idealNetY;
+              const minShiftY = 36 - (m.gBottom - m.gh * 0.92);
+              const maxShiftY = (m.by - 58) - m.gBottom;
+              shiftY = Math.max(minShiftY, Math.min(maxShiftY, ty - idealNetY));
             }
+
+            // Asegurar que el balón aterrice exactamente dentro de la red desplazada
+            const goalLeft = (m.gx + shiftX) - m.gw * 0.36;
+            const goalRight = (m.gx + shiftX) + m.gw * 0.36;
+            tx = Math.max(goalLeft, Math.min(goalRight, tx));
           }
 
           // El portero siempre se lanza al lado contrario para dejar vía libre
@@ -3352,7 +3404,7 @@
             setTimeout(() => {
               goalBox.classList.add('moving');
               goalBox.style.transform = `translate(calc(-50% + ${shiftX.toFixed(1)}px), calc(-92% + ${shiftY.toFixed(1)}px)) rotate(${tilt.toFixed(1)}deg)`;
-            }, 70);
+            }, 65);
           }
 
           // Animación parabólica del balón hacia (tx, ty)
@@ -3360,19 +3412,19 @@
           const dx = tx - m.bx;
           const dy = ty - m.by;
           const arcHeight = Math.min(-45, dy * 0.28);
-          const duration = 520;
+          const duration = reduceMotion ? 120 : 520;
           const start = performance.now();
 
           function stepBall(now) {
             const t = Math.min(1, (now - start) / duration);
-            // Ease out cubic
             const e = 1 - Math.pow(1 - t, 2.4);
             const curX = dx * e;
-            // Arco parabólico extra en Y
             const parabola = 4 * t * (1 - t) * arcHeight;
             const curY = dy * e + parabola;
             const scale = 1 - 0.45 * e;
 
+            lastBallX = curX;
+            lastBallY = curY;
             ballWrap.style.transform = `translate(calc(-50% + ${curX.toFixed(1)}px), calc(50% + ${curY.toFixed(1)}px)) scale(${scale.toFixed(3)})`;
 
             if (t < 1) {
@@ -3404,11 +3456,10 @@
 
           if (goals === 3) confetti(90);
 
-          // Pequeño rebote del balón en la red
+          // Pequeño rebote del balón al tocar el fondo de la red
           setTimeout(() => {
             ballWrap.style.transition = 'transform .28s ease-out';
-            const currentTransform = ballWrap.style.transform;
-            ballWrap.style.transform = currentTransform.replace(/scale\([^)]+\)/, 'scale(0.48)');
+            ballWrap.style.transform = `translate(calc(-50% + ${lastBallX.toFixed(1)}px), calc(50% + ${(lastBallY + 8).toFixed(1)}px)) scale(0.48)`;
           }, 40);
 
           // Resetear para el siguiente tiro
@@ -3427,35 +3478,31 @@
         }
 
         pitch.addEventListener('pointerdown', e => {
-          if (shooting) return;
+          if (!e.isPrimary || shooting) return;
           aiming = true;
-          startX = e.clientX;
-          startY = e.clientY;
-          pitch.setPointerCapture(e.pointerId);
+          activePid = e.pointerId;
+          try { pitch.setPointerCapture(e.pointerId); } catch (_) { }
           const { tx, ty, m } = computeTarget(e.clientX, e.clientY);
-          targetX = tx;
-          targetY = ty;
           drawAim(tx, ty, m);
         });
 
         pitch.addEventListener('pointermove', e => {
-          if (!aiming || shooting) return;
+          if (!aiming || shooting || e.pointerId !== activePid) return;
           const { tx, ty, m } = computeTarget(e.clientX, e.clientY);
-          targetX = tx;
-          targetY = ty;
           drawAim(tx, ty, m);
         });
 
         const endAim = e => {
-          if (!aiming) return;
+          if (!aiming || (e && e.pointerId !== undefined && e.pointerId !== activePid)) return;
           aiming = false;
+          activePid = null;
           if (shooting) return;
           const { tx, ty } = computeTarget(e.clientX, e.clientY);
           shootTo(tx, ty);
         };
 
         pitch.addEventListener('pointerup', endAim);
-        pitch.addEventListener('pointercancel', () => { aiming = false; clearAim(); });
+        pitch.addEventListener('pointercancel', () => { aiming = false; activePid = null; clearAim(); });
       })();
 
       /* ---------- Confeti ---------- */
@@ -3519,7 +3566,7 @@
         $('#panelBento').hidden = m !== 'bento';
         $('#panelTinder').hidden = m !== 'tinder';
         if (m === 'tinder' && !stack.children.length) renderDeck();
-        if (m === 'bento') { sizeGrid(); $$('.tile:not(.in)').forEach(reveal); }
+        if (m === 'bento') { requestAnimationFrame(sizeGrid); $$('.tile:not(.in)').forEach(reveal); }
       }
       $$('#seg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
       $$('[data-go]').forEach(b => b.addEventListener('click', () => {
@@ -3537,12 +3584,16 @@
           return;
         }
         if (!matchEl.hidden) { if (e.key === 'Escape') closeMatch(); return; }
-        if (mode === 'tinder' && !$('#planDlg').open) {
+        if (mode === 'tinder' && (!dlg || !dlg.open)) {
           const r = stack.getBoundingClientRect();
           if (r.top < innerHeight && r.bottom > 0) {
             if (e.key === 'ArrowRight') { e.preventDefault(); swipe('like'); }
             else if (e.key === 'ArrowUp') { e.preventDefault(); swipe('super'); }
-            else if (e.key === 'ArrowLeft') { e.preventDefault(); deck.escapes = 2; swipe('nope'); }
+            else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              if (deck.escapes < MAX_ESCAPES_TAP) escapeNope();
+              else { deck.escapes = 0; resetNopePos(); swipe('nope'); }
+            }
           }
         }
       });
@@ -3550,9 +3601,9 @@
       /* =================================================================
          SELECTOR DE PRIMERA CITA
          ================================================================= */
-      const dlg = $('#planDlg');
       let currentPlan = null;
       function updatePlanLinks() {
+        if (!currentPlan) return;
         const msg = $('#planMsg').value;
         $('#planMail').href = `mailto:${CONFIG.email}?subject=${encodeURIComponent('Primera cita: ' + currentPlan.title)}&body=${encodeURIComponent(msg)}`;
       }
@@ -3570,7 +3621,13 @@
       $('#planIg').addEventListener('click', () => {
         copyText($('#planMsg').value).then(ok => toast(ok ? 'Mensaje copiado ✅ Pégalo en su DM 😉' : 'Abre su DM y escríbele 😉', 3200));
       });
-      const closeDlg = () => { if (dlg.open) dlg.close(); };
+      const closeDlg = () => {
+        if (dlg.open) {
+          if (typeof dlg.close === 'function') dlg.close();
+          else dlg.removeAttribute('open');
+          lockScroll(false);
+        }
+      };
       $('#planClose').addEventListener('click', closeDlg);
       dlg.addEventListener('close', () => lockScroll(false));
       dlg.addEventListener('click', e => {
@@ -3595,11 +3652,11 @@
         ticking = false;
       }
       addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
-      addEventListener('resize', () => { if (confRAF) sizeCanvas(); });
+      addEventListener('resize', () => { if (confRAF) sizeCanvas(); }, { passive: true });
       onScroll();
 
       /* =================================================================
-         AUTO-DETECCIÓN DE FOTOS NUEVAS (foto42, foto43, foto44...)
+         AUTO-DETECCIÓN DE FOTOS NUEVAS (con caché de sesión para evitar 404s)
          ================================================================= */
       function probe(src) {
         return new Promise(resolve => {
@@ -3620,17 +3677,35 @@
         const a = CONFIG.autoDetect;
         if (!a.enabled) return;
         const known = new Set(photos.map(p => p.src));
+        try {
+          const cached = JSON.parse(sessionStorage.getItem('sm-extra-photos'));
+          if (Array.isArray(cached)) {
+            cached.forEach(src => { if (!known.has(src)) { addPhoto(src); known.add(src); } });
+            return;
+          }
+        } catch (_) { }
+
+        const foundList = [];
         let misses = 0;
-        for (let n = a.startFrom; n <= a.maxNumber && misses < a.maxConsecutiveMisses; n++) {
+        const maxMisses = Math.min(a.maxConsecutiveMisses || 2, 2);
+        const exts = ['jpg', 'jpeg'];
+        for (let n = a.startFrom; n <= a.maxNumber && misses < maxMisses; n++) {
           const num = String(n).padStart(a.padding, '0');
           let found = false;
-          for (const ext of a.extensions) {
+          for (const ext of exts) {
             const src = `${a.prefix}${num}.${ext}`;
             if (known.has(src)) { found = true; break; }
-            if (await probe(src)) { addPhoto(src); known.add(src); found = true; break; }
+            if (await probe(src)) {
+              addPhoto(src);
+              known.add(src);
+              foundList.push(src);
+              found = true;
+              break;
+            }
           }
           misses = found ? 0 : misses + 1;
         }
+        try { sessionStorage.setItem('sm-extra-photos', JSON.stringify(foundList)); } catch (_) { }
       }
       const startAuto = () => ('requestIdleCallback' in window ? requestIdleCallback(autoDetect, { timeout: 2500 }) : setTimeout(autoDetect, 800));
       if (document.readyState === 'complete') startAuto();
