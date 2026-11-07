@@ -2328,69 +2328,6 @@
           </div>
         </div>
 
-        <!-- ============ MINIJUEGO FÚTBOL ============ -->
-        <section class="section" id="futbol">
-          <div class="wrap">
-            <div class="sec-head reveal">
-              <div>
-                <p class="eyebrow">⚽ Minijuego · Efectividad del 100%</p>
-                <h2 class="h2">Sergio <em>nunca</em> falla</h2>
-              </div>
-            </div>
-            <div class="soccer-wrap reveal">
-              <div class="soccer-hud">
-                <div class="soccer-stats">
-                  <span>⚽ Goles: <b id="goalScore">0</b></span>
-                  <span>❌ Fallos: <b>0</b> <small style="opacity:.65;font-weight:600">(imposible)</small></span>
-                </div>
-                <span class="soccer-comment" id="goalComment">Apunta donde quieras (incluso fuera) y dispara 👇</span>
-              </div>
-
-              <div class="pitch" id="pitch" role="application"
-                aria-label="Campo de penaltis: arrastra o toca para disparar a portería">
-                <div class="pitch-crowd" aria-hidden="true"></div>
-                <svg class="pitch-lines" viewBox="0 0 800 320" preserveAspectRatio="none" aria-hidden="true">
-                  <line x1="0" y1="2" x2="800" y2="2" stroke="#fff" stroke-width="4" />
-                  <polygon points="180,2 620,2 720,190 80,190" fill="none" stroke="#fff" stroke-width="3" />
-                  <polygon points="280,2 520,2 560,75 240,75" fill="none" stroke="#fff" stroke-width="3" />
-                  <path d="M 310 190 A 110 45 0 0 0 490 190" fill="none" stroke="#fff" stroke-width="3" />
-                </svg>
-
-                <div class="goal-box" id="goalBox">
-                  <span class="goal-badge" id="goalBadge">🥅 Asistencia automática activada</span>
-                  <div class="goal-frame">
-                    <span class="keeper" id="keeper" aria-hidden="true">🧤</span>
-                  </div>
-                </div>
-
-                <svg class="aim-svg" id="aimSvg" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="aimGrad" x1="0" y1="1" x2="0" y2="0">
-                      <stop offset="0%" stop-color="#ff3d6e" />
-                      <stop offset="100%" stop-color="#ffd23f" />
-                    </linearGradient>
-                  </defs>
-                  <path id="aimPath" d="" fill="none" stroke="url(#aimGrad)" stroke-width="4" stroke-linecap="round"
-                    stroke-dasharray="8 8" />
-                </svg>
-                <div class="target-dot" id="targetDot" aria-hidden="true"></div>
-
-                <div class="penalty-spot" aria-hidden="true"></div>
-                <div class="ball-wrap" id="ballWrap">
-                  <span class="ball" id="ball" aria-hidden="true">⚽</span>
-                </div>
-
-                <div class="goal-banner" id="goalBanner" aria-live="polite">
-                  <span id="goalBannerTxt">¡GOOOOL! 🔥</span>
-                </div>
-
-                <span class="pitch-hint" id="pitchHint">Arrastra desde el balón o toca cualquier punto para
-                  chutar</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <div id="panelBento" role="tabpanel">
           <div class="bento" id="bento"></div>
         </div>
@@ -2409,6 +2346,68 @@
               <button class="act like" id="btnLike" aria-label="Me gusta">❤️</button>
             </div>
             <p class="tinder-hint">Desliza la carta → ❤️ · ↑ 🔥 · (← bajo tu responsabilidad)</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MINIJUEGO FÚTBOL ============ -->
+    <section class="section" id="futbol">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div>
+            <p class="eyebrow">⚽ Minijuego · Efectividad del 100%</p>
+            <h2 class="h2">Sergio <em>nunca</em> falla</h2>
+          </div>
+        </div>
+        <div class="soccer-wrap reveal">
+          <div class="soccer-hud">
+            <div class="soccer-stats">
+              <span>⚽ Goles: <b id="goalScore">0</b></span>
+              <span>❌ Fallos: <b>0</b> <small style="opacity:.65;font-weight:600">(imposible)</small></span>
+            </div>
+            <span class="soccer-comment" id="goalComment">Apunta donde quieras (incluso fuera) y dispara 👇</span>
+          </div>
+
+          <div class="pitch" id="pitch" role="application"
+            aria-label="Campo de penaltis: arrastra o toca para disparar a portería">
+            <div class="pitch-crowd" aria-hidden="true"></div>
+            <svg class="pitch-lines" viewBox="0 0 800 320" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="0" y1="2" x2="800" y2="2" stroke="#fff" stroke-width="4" />
+              <polygon points="180,2 620,2 720,190 80,190" fill="none" stroke="#fff" stroke-width="3" />
+              <polygon points="280,2 520,2 560,75 240,75" fill="none" stroke="#fff" stroke-width="3" />
+              <path d="M 310 190 A 110 45 0 0 0 490 190" fill="none" stroke="#fff" stroke-width="3" />
+            </svg>
+
+            <div class="goal-box" id="goalBox">
+              <span class="goal-badge" id="goalBadge">🥅 Asistencia automática activada</span>
+              <div class="goal-frame">
+                <span class="keeper" id="keeper" aria-hidden="true">🧤</span>
+              </div>
+            </div>
+
+            <svg class="aim-svg" id="aimSvg" aria-hidden="true">
+              <defs>
+                <linearGradient id="aimGrad" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0%" stop-color="#ff3d6e" />
+                  <stop offset="100%" stop-color="#ffd23f" />
+                </linearGradient>
+              </defs>
+              <path id="aimPath" d="" fill="none" stroke="url(#aimGrad)" stroke-width="4" stroke-linecap="round"
+                stroke-dasharray="8 8" />
+            </svg>
+            <div class="target-dot" id="targetDot" aria-hidden="true"></div>
+
+            <div class="penalty-spot" aria-hidden="true"></div>
+            <div class="ball-wrap" id="ballWrap">
+              <span class="ball" id="ball" aria-hidden="true">⚽</span>
+            </div>
+
+            <div class="goal-banner" id="goalBanner" aria-live="polite">
+              <span id="goalBannerTxt">¡GOOOOL! 🔥</span>
+            </div>
+
+            <span class="pitch-hint" id="pitchHint">Arrastra desde el balón o toca cualquier punto para chutar</span>
           </div>
         </div>
       </div>
@@ -3459,36 +3458,51 @@
         pitch.addEventListener('pointercancel', () => { aiming = false; clearAim(); });
       })();
 
-      /* =================================================================
-         SELECTOR DE PRIMERA CITA
-         ================================================================= */
-      const dlg = $('#planDlg');
-      let currentPlan = null;
-      function updatePlanLinks() {
-        const msg = $('#planMsg').value;
-        $('#planMail').href = `mailto:${CONFIG.email}?subject=${encodeURIComponent('Primera cita: ' + currentPlan.title)}&body=${encodeURIComponent(msg)}`;
+      /* ---------- Confeti ---------- */
+      const cv = $('#confetti');
+      const ctx = cv.getContext('2d');
+      let parts = [], confRAF = 0;
+      function sizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
-      $$('.plan').forEach(btn => btn.addEventListener('click', () => {
-        currentPlan = PLANES[btn.dataset.plan];
-        $('#planEmo').textContent = currentPlan.emoji;
-        $('#planTitle').textContent = currentPlan.title;
-        $('#planMsg').value = currentPlan.msg;
-        $('#planIg').href = IG_DM;
-        updatePlanLinks();
-        if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
-        lockScroll(true);
-      }));
-      $('#planMsg').addEventListener('input', updatePlanLinks);
-      $('#planIg').addEventListener('click', () => {
-        copyText($('#planMsg').value).then(ok => toast(ok ? 'Mensaje copiado ✅ Pégalo en su DM 😉' : 'Abre su DM y escríbele 😉', 3200));
-      });
-      const closeDlg = () => { if (dlg.open) dlg.close(); };
-      $('#planClose').addEventListener('click', closeDlg);
-      dlg.addEventListener('close', () => lockScroll(false));
-      dlg.addEventListener('click', e => {
-        const r = dlg.getBoundingClientRect();
-        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeDlg();
-      });
+      function confetti(n) {
+        if (reduceMotion) return;
+        sizeCanvas();
+        const colors = ['#ff3d6e', '#ff9a3c', '#ffd23f', '#ffffff', '#7c5cff', '#2ee6a6'];
+        const sources = [[innerWidth / 2, innerHeight * 0.42], [0, innerHeight * 0.8], [innerWidth, innerHeight * 0.8]];
+        for (let i = 0; i < n; i++) {
+          const [ox, oy] = sources[i % 3];
+          const side = ox === 0 ? 1 : ox === innerWidth ? -1 : 0;
+          parts.push({
+            x: ox, y: oy,
+            vx: side ? side * (6 + Math.random() * 10) : (Math.random() - 0.5) * 18,
+            vy: -(8 + Math.random() * 14),
+            g: 0.32 + Math.random() * 0.18,
+            s: 6 + Math.random() * 8,
+            r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.35,
+            c: colors[(Math.random() * colors.length) | 0],
+            heart: Math.random() < 0.22, life: 0
+          });
+        }
+        if (!confRAF) confRAF = requestAnimationFrame(confLoop);
+      }
+      function confLoop() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        parts.forEach(p => {
+          p.vy += p.g; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+          ctx.save();
+          ctx.translate(p.x, p.y); ctx.rotate(p.r);
+          ctx.fillStyle = p.c;
+          if (p.heart) { ctx.font = `${p.s * 2}px serif`; ctx.fillText('♥', -p.s / 2, p.s / 2); }
+          else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+          ctx.restore();
+        });
+        parts = parts.filter(p => p.y < innerHeight + 40 && p.life < 420);
+        if (parts.length) confRAF = requestAnimationFrame(confLoop);
+        else { confRAF = 0; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+      }
 
       /* =================================================================
          CONMUTADOR DE MODO + NAVEGACIÓN
