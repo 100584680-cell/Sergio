@@ -149,18 +149,29 @@
     .soccer-stats {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 16px;
-      font-weight: 800;
+      font-weight: 700;
       font-size: .92rem;
     }
 
+    .soccer-stats span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .soccer-stats span b {
-      font-family: var(--f-display);
-      font-size: 1.15rem;
-      background: var(--grad);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      font-family: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -.02em;
+      padding: 2px 10px;
+      border-radius: 8px;
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      color: var(--a2);
     }
 
     .soccer-comment {
@@ -224,7 +235,7 @@
         radial-gradient(circle at 50% 90%, rgba(255, 255, 255, .08), transparent 50%);
     }
 
-    /* Portería móvil */
+    /* Portería */
     .goal-box {
       position: absolute;
       left: 50%;
@@ -234,17 +245,8 @@
       transform: translate(-50%, -92%);
       z-index: 3;
       pointer-events: none;
-      transition: transform .42s cubic-bezier(.2, 1.35, .35, 1);
+      transition: transform .3s cubic-bezier(.25, 1, .5, 1);
       will-change: transform;
-    }
-
-    .goal-box.moving::after {
-      content: "🛞💨";
-      position: absolute;
-      bottom: -18px;
-      right: -12px;
-      font-size: 1.2rem;
-      animation: pop .3s var(--ease);
     }
 
     .goal-frame {
@@ -263,7 +265,7 @@
     }
 
     .goal-box.net-hit .goal-frame {
-      animation: netShake .45s var(--ease);
+      animation: netShake .35s var(--ease);
     }
 
     @keyframes netShake {
@@ -273,12 +275,8 @@
         transform: scale(1);
       }
 
-      30% {
-        transform: scale(1.06, .95) skewX(2deg);
-      }
-
-      60% {
-        transform: scale(.98, 1.03) skewX(-2deg);
+      40% {
+        transform: scale(1.03, .98);
       }
     }
 
@@ -289,31 +287,8 @@
       transform: translateX(-50%);
       font-size: clamp(2rem, 4.5vw, 2.7rem);
       line-height: 1;
-      transition: transform .42s cubic-bezier(.22, 1.3, .36, 1);
+      transition: transform .36s cubic-bezier(.22, 1, .36, 1);
       filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .5));
-    }
-
-    .goal-badge {
-      position: absolute;
-      left: 50%;
-      top: -28px;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      font-size: .68rem;
-      font-weight: 800;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 4px 10px;
-      border-radius: 99px;
-      background: rgba(10, 9, 11, .78);
-      color: #ffd23f;
-      border: 1px solid rgba(255, 255, 255, .2);
-      opacity: 0;
-      transition: opacity .25s;
-    }
-
-    .goal-box.moving .goal-badge {
-      opacity: 1;
     }
 
     /* Guía de tiro */
@@ -2377,7 +2352,7 @@
               <span>⚽ Goles: <b id="goalScore">0</b></span>
               <span>❌ Fallos: <b>0</b> <small style="opacity:.65;font-weight:600">(imposible)</small></span>
             </div>
-            <span class="soccer-comment" id="goalComment">Apunta donde quieras (incluso fuera) y dispara 👇</span>
+            <span class="soccer-comment" id="goalComment">Apunta y dispara a portería 👇</span>
           </div>
 
           <div class="pitch" id="pitch" role="application"
@@ -2391,7 +2366,6 @@
             </svg>
 
             <div class="goal-box" id="goalBox">
-              <span class="goal-badge" id="goalBadge">🥅 Asistencia automática activada</span>
               <div class="goal-frame">
                 <span class="keeper" id="keeper" aria-hidden="true">🧤</span>
               </div>
@@ -3270,7 +3244,7 @@
       matchEl.addEventListener('click', e => { if (e.target === matchEl) closeMatch(); });
 
       /* =================================================================
-         MINIJUEGO FÚTBOL (SIEMPRE GOL · LA PORTERÍA SE MUEVE)
+         MINIJUEGO FÚTBOL
          ================================================================= */
       (function initSoccerGame() {
         const pitch = $('#pitch');
@@ -3288,24 +3262,17 @@
         if (!pitch) return;
 
         let goals = 0;
-        let movedGoals = 0;
         let shooting = false;
         let aiming = false;
         let activePid = null;
         let lastBallX = 0, lastBallY = 0;
 
-        const normalGoalMsgs = [
+        const goalMsgs = [
           'Directo a la escuadra 🎯 Calidad de Cuéllar.',
-          'El portero ni la ha olido 🧤💨',
-          'Definición de delantero centro titular ⚽🔥',
-          'Puntería fina, como eligiendo vermú 🍸'
-        ];
-        const movedGoalMsgs = [
-          '¿Iba fuera? Tranquila, la portería se mueve sola por Sergio 🥅💨',
-          'La FIFA lo llama trampa, Sergio lo llama magnetismo 🧲⚽',
-          'Ni tirando al córner se falla en esta web 😂',
-          'La portería tiene ruedas y sabe quién manda 😏',
-          'En Cuéllar las leyes de la física van a favor de Sergio 🏆'
+          'El portero ni la ha olido 🧤',
+          'Definición de delantero titular ⚽',
+          'Puntería fina, como eligiendo vermú 🍸',
+          'Imposible fallar 😏'
         ];
 
         function getMetrics() {
@@ -3326,29 +3293,33 @@
           let tx = px;
           let ty = py;
 
-          // Si arrastra hacia abajo desde cerca del balón (estilo tirachinas), invertimos el vector
           const distFromBall = Math.hypot(px - m.bx, py - m.by);
           if (py > m.by + 12 && distFromBall < 180) {
+            // Estilo tirachinas si arrastra hacia atrás desde el balón
             tx = m.bx - (px - m.bx) * 2.4;
             ty = m.by - (py - m.by) * 2.6;
           } else if (distFromBall < 28) {
-            // Si toca justo encima del balón sin arrastrar, dispara a un lado aleatorio
-            tx = m.gx + (Math.random() - 0.5) * m.gw * 1.6;
-            ty = m.gBottom - m.gh * (0.35 + Math.random() * 0.45);
+            // Toque rápido sobre el balón: tiro directo entre los tres palos
+            tx = m.gx + (Math.random() - 0.5) * m.gw * 0.7;
+            ty = m.gBottom - m.gh * (0.25 + Math.random() * 0.45);
+          } else if (ty > m.gBottom - 8) {
+            // Si apunta en el césped por delante de la línea de gol, es un tiro raso hacia esa dirección
+            const ratio = Math.min(1.6, Math.max(0.8, (m.by - (m.gBottom - 12)) / Math.max(40, m.by - py)));
+            tx = m.bx + (px - m.bx) * ratio;
+            ty = m.gBottom - 12;
           }
 
-          // Limitar para que la portería y su cartel superior siempre quepan completos dentro del campo
-          const padX = Math.max(36, m.gw * 0.24);
-          const padTop = 52;
-          const maxBottom = m.by - 70;
+          const padX = Math.max(36, m.gw * 0.22);
+          const padTop = 28;
+          const maxBottom = m.gBottom - 8;
           tx = Math.max(padX, Math.min(m.w - padX, tx));
           ty = Math.max(padTop, Math.min(maxBottom, ty));
           return { tx, ty, m };
         }
 
         function drawAim(tx, ty, m) {
-          const cx = (m.bx + tx) / 2 + (tx - m.bx) * 0.18;
-          const cy = Math.min(m.by, ty) - 35;
+          const cx = (m.bx + tx) / 2 + (tx - m.bx) * 0.15;
+          const cy = Math.min(m.by, ty) - 28;
           aimPath.setAttribute('d', `M ${m.bx.toFixed(1)} ${m.by.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)}`);
           targetDot.style.left = `${tx}px`;
           targetDot.style.top = `${ty}px`;
@@ -3367,57 +3338,55 @@
           if (pitchHint) pitchHint.style.opacity = '0';
 
           const m = getMetrics();
-          // Comprobar si el tiro va dentro de la portería original
-          const inHoriz = Math.abs(tx - m.gx) <= m.gw * 0.38;
-          const inVert = ty >= (m.gBottom - m.gh * 0.86) && ty <= (m.gBottom - 6);
-          const isOutside = !(inHoriz && inVert);
+          const halfPost = m.gw * 0.43;
+          const crossbarY = m.gBottom - m.gh * 0.85;
+
+          const outHoriz = Math.abs(tx - m.gx) > halfPost;
+          const outVert = ty < crossbarY;
+          const isOutside = outHoriz || outVert;
 
           let shiftX = 0;
           let shiftY = 0;
-          if (isOutside) {
-            // Desplazar la portería sin que se salga de los bordes del estadio
-            const maxShiftX = Math.max(0, m.w * 0.5 - m.gw * 0.5 - 10);
-            shiftX = Math.max(-maxShiftX, Math.min(maxShiftX, tx - m.gx));
 
-            const idealNetY = m.gBottom - m.gh * 0.48;
-            if (!inVert) {
-              const minShiftY = 36 - (m.gBottom - m.gh * 0.92);
-              const maxShiftY = (m.by - 58) - m.gBottom;
-              shiftY = Math.max(minShiftY, Math.min(maxShiftY, ty - idealNetY));
+          if (isOutside) {
+            // Solo se desplaza lo justo para que el balón entre por el palo más cercano
+            if (outHoriz) {
+              const dir = tx > m.gx ? 1 : -1;
+              const rawShiftX = tx - (m.gx + dir * (m.gw * 0.34));
+              const maxShiftX = Math.max(0, m.w * 0.5 - m.gw * 0.5 - 8);
+              shiftX = Math.max(-maxShiftX, Math.min(maxShiftX, rawShiftX));
+            }
+            if (outVert) {
+              const rawShiftY = ty - (m.gBottom - m.gh * 0.74);
+              const minShiftY = 14 - (m.gBottom - m.gh * 0.92);
+              shiftY = Math.max(minShiftY, Math.min(0, rawShiftY));
             }
 
-            // Asegurar que el balón aterrice exactamente dentro de la red desplazada
-            const goalLeft = (m.gx + shiftX) - m.gw * 0.36;
-            const goalRight = (m.gx + shiftX) + m.gw * 0.36;
+            const goalLeft = (m.gx + shiftX) - m.gw * 0.38;
+            const goalRight = (m.gx + shiftX) + m.gw * 0.38;
             tx = Math.max(goalLeft, Math.min(goalRight, tx));
-          }
 
-          // El portero siempre se lanza al lado contrario para dejar vía libre
-          const keeperDir = (tx - (m.gx + shiftX)) >= 0 ? -1 : 1;
-          const keeperJumpX = keeperDir * (m.gw * 0.34);
-          keeper.style.transform = `translate(calc(-50% + ${keeperJumpX.toFixed(0)}px), -14px) rotate(${keeperDir * 38}deg)`;
-
-          // Si el tiro iba fuera, la portería corre a buscar el balón mientras vuela
-          if (isOutside) {
-            movedGoals++;
-            const tilt = Math.max(-8, Math.min(8, shiftX * 0.03));
             setTimeout(() => {
-              goalBox.classList.add('moving');
-              goalBox.style.transform = `translate(calc(-50% + ${shiftX.toFixed(1)}px), calc(-92% + ${shiftY.toFixed(1)}px)) rotate(${tilt.toFixed(1)}deg)`;
-            }, 65);
+              goalBox.style.transform = `translate(calc(-50% + ${shiftX.toFixed(1)}px), calc(-92% + ${shiftY.toFixed(1)}px))`;
+            }, 80);
           }
 
-          // Animación parabólica del balón hacia (tx, ty)
+          // El portero se vence al lado contrario del balón
+          const keeperDir = (tx - (m.gx + shiftX)) >= 0 ? -1 : 1;
+          const keeperJumpX = keeperDir * (m.gw * 0.32);
+          keeper.style.transform = `translate(calc(-50% + ${keeperJumpX.toFixed(0)}px), -10px) rotate(${keeperDir * 28}deg)`;
+
+          // Vuelo del balón hacia (tx, ty)
           ball.classList.add('spin');
           const dx = tx - m.bx;
           const dy = ty - m.by;
-          const arcHeight = Math.min(-45, dy * 0.28);
-          const duration = reduceMotion ? 120 : 520;
+          const arcHeight = Math.min(-36, dy * 0.24);
+          const duration = reduceMotion ? 120 : 480;
           const start = performance.now();
 
           function stepBall(now) {
             const t = Math.min(1, (now - start) / duration);
-            const e = 1 - Math.pow(1 - t, 2.4);
+            const e = 1 - Math.pow(1 - t, 2.3);
             const curX = dx * e;
             const parabola = 4 * t * (1 - t) * arcHeight;
             const curY = dy * e + parabola;
@@ -3430,51 +3399,41 @@
             if (t < 1) {
               requestAnimationFrame(stepBall);
             } else {
-              onGoalScored(isOutside);
+              onGoalScored();
             }
           }
           requestAnimationFrame(stepBall);
         }
 
-        function onGoalScored(wasMoved) {
+        function onGoalScored() {
           goals++;
           goalScoreEl.textContent = goals;
           ball.classList.remove('spin');
           goalBox.classList.add('net-hit');
 
-          goalBannerTxt.textContent = wasMoved ? '¡LA PORTERÍA SE MUEVE: GOOOL! 🥅💨' : '¡GOOOOLAZO! ⚽🔥';
+          goalBannerTxt.textContent = '¡GOOOOL! ⚽';
           goalBanner.classList.add('show');
-          emojiBurst('⚽', ballWrap);
-
-          if (wasMoved) {
-            const msg = movedGoalMsgs[(movedGoals - 1) % movedGoalMsgs.length];
-            goalComment.textContent = msg;
-            if (movedGoals === 1 || movedGoals % 3 === 0) toast(msg, 2800);
-          } else {
-            goalComment.textContent = normalGoalMsgs[(goals - 1) % normalGoalMsgs.length];
-          }
+          goalComment.textContent = goalMsgs[(goals - 1) % goalMsgs.length];
 
           if (goals === 3) confetti(90);
 
-          // Pequeño rebote del balón al tocar el fondo de la red
           setTimeout(() => {
-            ballWrap.style.transition = 'transform .28s ease-out';
+            ballWrap.style.transition = 'transform .25s ease-out';
             ballWrap.style.transform = `translate(calc(-50% + ${lastBallX.toFixed(1)}px), calc(50% + ${(lastBallY + 8).toFixed(1)}px)) scale(0.48)`;
           }, 40);
 
-          // Resetear para el siguiente tiro
           setTimeout(() => {
             goalBanner.classList.remove('show');
-            goalBox.classList.remove('net-hit', 'moving');
+            goalBox.classList.remove('net-hit');
             goalBox.style.transform = 'translate(-50%, -92%)';
             keeper.style.transform = 'translateX(-50%)';
-            ballWrap.style.transition = 'transform .4s cubic-bezier(.22, 1, .36, 1)';
+            ballWrap.style.transition = 'transform .38s cubic-bezier(.22, 1, .36, 1)';
             ballWrap.style.transform = 'translate(-50%, 50%) scale(1)';
             setTimeout(() => {
               ballWrap.style.transition = '';
               shooting = false;
-            }, 380);
-          }, 1350);
+            }, 360);
+          }, 1150);
         }
 
         pitch.addEventListener('pointerdown', e => {
