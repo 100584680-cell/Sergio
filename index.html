@@ -1488,6 +1488,7 @@
       font-weight: 800;
       z-index: 6;
       will-change: transform;
+      transition: transform .44s cubic-bezier(.22, 1.2, .36, 1), background .3s, box-shadow .3s;
     }
 
     .act.super {
@@ -3256,9 +3257,9 @@
         }
       }
 
-      /* Botón ❌ que se escapa del cursor en PC y al tocar en móvil */
-      const MAX_ESCAPES_HOVER = 14; // veces que esquiva el ratón en PC antes de dejarse pulsar
+      /* Botón ❌ que se escapa del cursor en PC (con un pequeño retardo para poder cazarlo) y al tocar en móvil */
       const MAX_ESCAPES_TAP = 7;    // veces que esquiva el toque en móvil antes de dejarse pulsar
+      const PC_REACTION_MS = 185;   // tiempo que tarda en reaccionar en PC: si eres rápido, le das
       const escapeLines = [
         'Uy, se me ha escapado 🙃',
         '¿Seguro? Piénsatelo 🤨',
@@ -3269,16 +3270,23 @@
         '¿Todavía detrás del botón? Dale al ❤️ ya 😌',
         'Nivel de esquive: Sergio en el 1 pa 1 🏀'
       ];
-      let nopeX = 0, nopeY = 0, lastEscapeAt = 0;
+      let nopeX = 0, nopeY = 0, lastEscapeAt = 0, nopeReactTimer = 0, lastMouseX = 0, lastMouseY = 0;
 
       function resetNopePos() {
+        clearTimeout(nopeReactTimer);
+        nopeReactTimer = 0;
         nopeX = 0; nopeY = 0;
         nopeBtn.style.transform = '';
       }
 
+      function isAnyModalOpen() {
+        return lb.open || !matchEl.hidden || Boolean(dlg && dlg.open) || Boolean(soccerDlg && soccerDlg.open);
+      }
+
       function escapeNope(mx, my) {
+        if (isAnyModalOpen() || deck.busy) return;
         const now = performance.now();
-        if (now - lastEscapeAt < 85) return;
+        if (now - lastEscapeAt < 220) return;
         lastEscapeAt = now;
 
         const baseRect = nopeBtn.getBoundingClientRect();
@@ -3291,9 +3299,9 @@
         // Elige una posición aleatoria dentro de la pantalla que quede lejos del cursor
         let bestX = 0, bestY = 0, bestDist = -1;
         for (let k = 0; k < 12; k++) {
-          const rawX = (Math.random() - 0.35) * 260;
+          const rawX = (Math.random() - 0.35) * 240;
           const candX = Math.max(minX, Math.min(maxX, rawX));
-          const candY = -20 - Math.random() * 145; // salta hacia arriba (-20px a -165px)
+          const candY = -20 - Math.random() * 135; // salta hacia arriba (-20px a -155px)
           const cx = origCx + candX;
           const cy = origCy + candY;
           const d = (mx !== undefined && my !== undefined)
@@ -3308,44 +3316,59 @@
 
         nopeX = bestX;
         nopeY = bestY;
-        const rot = (bestX >= 0 ? 1 : -1) * (10 + Math.random() * 18);
+        const rot = (bestX >= 0 ? 1 : -1) * (8 + Math.random() * 14);
         nopeBtn.style.transform = `translate(${nopeX.toFixed(0)}px, ${nopeY.toFixed(0)}px) rotate(${rot.toFixed(0)}deg)`;
 
         deck.escapes++;
-        const limit = finePointer ? MAX_ESCAPES_HOVER : MAX_ESCAPES_TAP;
         clearTimeout(nopeBtn._t);
-        if (deck.escapes < limit) {
-          nopeBtn._t = setTimeout(resetNopePos, 2400);
-        }
+        nopeBtn._t = setTimeout(resetNopePos, 2400);
 
         if (deck.escapes === 1 || deck.escapes % 2 === 0) {
           toast(escapeLines[(deck.escapes - 1) % escapeLines.length], 2200);
         }
       }
 
-      // En PC: detecta cuando el ratón se acerca al botón ❌ y lo esquiva al instante
+      function schedulePcEscape(mx, my) {
+        lastMouseX = mx;
+        lastMouseY = my;
+        if (nopeReactTimer) return;
+        nopeReactTimer = setTimeout(() => {
+          nopeReactTimer = 0;
+          if (mode !== 'tinder' || deck.busy || isAnyModalOpen()) return;
+          const r = nopeBtn.getBoundingClientRect();
+          if (!r.width) return;
+          const dist = Math.hypot(lastMouseX - (r.left + r.width / 2), lastMouseY - (r.top + r.height / 2));
+          if (dist < 52) escapeNope(lastMouseX, lastMouseY);
+        }, PC_REACTION_MS);
+      }
+
+      // En PC: se escapa infinitas veces, pero tarda un instante en reaccionar para que puedas darle si eres rápido
       document.addEventListener('pointermove', e => {
-        if (e.pointerType !== 'mouse' || mode !== 'tinder' || deck.busy) return;
+        if (e.pointerType !== 'mouse' || mode !== 'tinder' || deck.busy || isAnyModalOpen()) return;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
         const r = nopeBtn.getBoundingClientRect();
         if (!r.width) return;
         const cx = r.left + r.width / 2;
         const cy = r.top + r.height / 2;
         const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
-        if (dist < 64 && deck.escapes < MAX_ESCAPES_HOVER) {
-          escapeNope(e.clientX, e.clientY);
+        if (dist < 44) {
+          schedulePcEscape(e.clientX, e.clientY);
         }
       }, { passive: true });
 
       nopeBtn.addEventListener('pointerenter', e => {
-        if (e.pointerType === 'mouse' && deck.escapes < MAX_ESCAPES_HOVER && !deck.busy) {
-          escapeNope(e.clientX, e.clientY);
+        if (e.pointerType === 'mouse' && !deck.busy && !isAnyModalOpen()) {
+          schedulePcEscape(e.clientX, e.clientY);
         }
       });
 
       nopeBtn.addEventListener('click', e => {
-        if (deck.busy) return;
-        const limit = finePointer ? MAX_ESCAPES_HOVER : MAX_ESCAPES_TAP;
-        if (deck.escapes < limit) {
+        if (deck.busy || isAnyModalOpen()) return;
+        clearTimeout(nopeReactTimer);
+        nopeReactTimer = 0;
+        // En móvil (sin ratón) esquiva unos cuantos toques; en PC si has sido suficientemente rápido para hacer click, entra
+        if (!finePointer && deck.escapes < MAX_ESCAPES_TAP) {
           escapeNope(e.clientX, e.clientY);
           return;
         }
@@ -3416,6 +3439,8 @@
 
         const openSoccer = () => {
           if (!soccerDlg) return;
+          clearTimeout(nopeBtn._t);
+          resetNopePos();
           if (typeof soccerDlg.showModal === 'function') soccerDlg.showModal();
           else soccerDlg.setAttribute('open', '');
           lockScroll(true);
@@ -3520,25 +3545,47 @@
           }
 
           const m = getMetrics();
-          const halfPost = m.gw * 0.43;
-          const crossbarY = m.gBottom - m.gh * 0.85;
+          const innerHalfW = m.gw * 0.37;
+          const innerTopY = m.gBottom - m.gh * 0.78;
+          // Margen alrededor de los palos/larguero/escuadra donde el balón entra con rosca sin mover la portería
+          const edgeMaxHalfW = m.gw * 0.62;
+          const edgeMinTopY = m.gBottom - m.gh * 1.08;
 
-          const outHoriz = Math.abs(tx - m.gx) > halfPost;
-          const outVert = ty < crossbarY;
-          const isOutside = outHoriz || outVert;
+          const distX = tx - m.gx;
+          const absX = Math.abs(distX);
+          const farHoriz = absX > edgeMaxHalfW;
+          const farVert = ty < edgeMinTopY;
+          const isFarOutside = farHoriz || farVert;
+
+          const nearBorderOrCorner = !isFarOutside && (absX > innerHalfW || ty < innerTopY);
 
           let shiftX = 0;
           let shiftY = 0;
+          let curveBowX = 0;
+          let curveBowY = 0;
 
-          if (isOutside) {
-            // Solo se desplaza lo justo para que el balón entre por el palo más cercano
-            if (outHoriz) {
+          if (nearBorderOrCorner) {
+            // Tiro a la escuadra o bordes: la portería NO se mueve y el balón coge efecto (rosca) hacia dentro
+            const sideDir = distX >= 0 ? 1 : -1;
+            const targetInX = Math.max(m.gx - m.gw * 0.42, Math.min(m.gx + m.gw * 0.42, tx));
+            const targetInY = Math.max(m.gBottom - m.gh * 0.83, ty);
+            // Comba lateral hacia fuera a mitad de vuelo antes de cerrarse al palo/escuadra
+            curveBowX = (tx - targetInX) * 0.9 + sideDir * (14 + Math.min(18, Math.max(0, absX - innerHalfW) * 0.45));
+            if (ty < innerTopY) {
+              // Folha seca / caída con rosca bajo el larguero
+              curveBowY = -Math.max(10, (targetInY - ty) * 0.85);
+            }
+            tx = targetInX;
+            ty = targetInY;
+          } else if (isFarOutside) {
+            // Solo cuando va claramente fuera se desplaza la portería lo justo
+            if (farHoriz) {
               const dir = tx > m.gx ? 1 : -1;
               const rawShiftX = tx - (m.gx + dir * (m.gw * 0.34));
               const maxShiftX = Math.max(0, m.w * 0.5 - m.gw * 0.5 - 8);
               shiftX = Math.max(-maxShiftX, Math.min(maxShiftX, rawShiftX));
             }
-            if (outVert) {
+            if (farVert) {
               const rawShiftY = ty - (m.gBottom - m.gh * 0.74);
               const minShiftY = 14 - (m.gBottom - m.gh * 0.92);
               shiftY = Math.max(minShiftY, Math.min(0, rawShiftY));
@@ -3562,14 +3609,15 @@
           ball.classList.add('spin');
           const dx = tx - m.bx;
           const dy = ty - m.by;
-          const arcHeight = Math.min(-36, dy * 0.24);
-          const duration = reduceMotion ? 120 : 480;
+          const arcHeight = Math.min(-36, dy * 0.24) + curveBowY;
+          const duration = reduceMotion ? 120 : (nearBorderOrCorner ? 520 : 480);
           const start = performance.now();
 
           function stepBall(now) {
             const t = Math.min(1, (now - start) / duration);
             const e = 1 - Math.pow(1 - t, 2.3);
-            const curX = dx * e;
+            const spinCurveX = Math.sin(t * Math.PI) * curveBowX;
+            const curX = dx * e + spinCurveX;
             const parabola = 4 * t * (1 - t) * arcHeight;
             const curY = dy * e + parabola;
             const scale = 1 - 0.45 * e;
