@@ -120,7 +120,7 @@
 
   /* ============ HERO ============ */
   .hero {
-    position: relative; min-height: 100svh; display: grid; align-items: end;
+    position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end;
     overflow: hidden; isolation: isolate; background: #000;
   }
   .hero-bg {
@@ -143,25 +143,33 @@
   .hero-veil {
     position: absolute; inset: 0; z-index: -1;
     background:
-      radial-gradient(120% 70% at 50% 100%, rgba(10, 9, 11, .96) 25%, rgba(10, 9, 11, .55) 60%, rgba(10, 9, 11, .25) 100%),
-      linear-gradient(180deg, rgba(10, 9, 11, .55), transparent 30%);
+      radial-gradient(120% 80% at 50% 100%, rgba(10, 9, 11, .97) 28%, rgba(10, 9, 11, .68) 65%, rgba(10, 9, 11, .35) 100%),
+      linear-gradient(180deg, rgba(10, 9, 11, .65), transparent 32%);
   }
-  .hero-content { padding: 0 20px calc(96px + var(--safe-b)); color: #f6f1ea; width: min(1240px, 100%); margin-inline: auto; }
+  .hero-content {
+    padding: calc(84px + env(safe-area-inset-top, 0px)) 20px calc(86px + var(--safe-b));
+    color: #f6f1ea; width: min(1240px, 100%); margin-inline: auto;
+  }
   .kicker {
-    display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px;
+    display: inline-flex; align-items: center; gap: 9px; margin: 0 0 18px; width: fit-content;
     font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-    padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    padding: 9px 16px; border-radius: 999px;
+    background: rgba(14, 12, 16, .75); border: 1px solid rgba(255, 255, 255, .22);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .6);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ee6a6; box-shadow: 0 0 0 0 rgba(46, 230, 166, .7); animation: ping 1.8s infinite; }
-  @keyframes ping { 70% { box-shadow: 0 0 0 10px rgba(46, 230, 166, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 230, 166, 0); } }
+  .dot {
+    flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: #2ee6a6;
+    box-shadow: 0 0 10px #2ee6a6; animation: dotPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes dotPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: .65; } }
   .name {
-    margin: 0; font-family: var(--f-display); font-weight: 800; line-height: .84; letter-spacing: -.045em;
+    margin: 0; font-family: var(--f-display); font-weight: 800; line-height: .88; letter-spacing: -.045em;
     text-transform: uppercase;
   }
-  .name .l1 { display: block; font-size: clamp(4rem, 21vw, 13rem); }
+  .name .l1 { display: block; font-size: clamp(3.6rem, min(17vw, 15.5svh), 10.5rem); }
   .name .l2 {
-    display: block; font-size: clamp(2.2rem, 12vw, 8.4rem);
+    display: block; font-size: clamp(2.1rem, min(10.5vw, 10svh), 6.8rem);
     background: linear-gradient(100deg, #ff3d6e, #ff9a3c 55%, #ffd23f); -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .name .ch { display: inline-block; opacity: 0; transform: translateY(60%) rotate(6deg); animation: chIn .9s var(--ease) forwards; }
@@ -332,11 +340,11 @@
   .act {
     position: relative; display: grid; place-items: center; border-radius: 50%; background: var(--card); border: 1px solid var(--line);
     box-shadow: 0 14px 34px -14px rgba(0, 0, 0, .55); font-size: 1.6rem;
-    transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), background .3s, box-shadow .3s;
+    transition: transform .32s cubic-bezier(.22, 1.4, .36, 1), background .3s, box-shadow .3s;
     -webkit-tap-highlight-color: transparent;
   }
   .act:active { scale: .9; }
-  .act.nope { width: 62px; height: 62px; color: #ff3d6e; font-weight: 800; }
+  .act.nope { width: 62px; height: 62px; color: #ff3d6e; font-weight: 800; z-index: 6; will-change: transform; }
   .act.super { width: 52px; height: 52px; font-size: 1.35rem; }
   .act.like { width: 74px; height: 74px; font-size: 1.9rem; background: var(--grad); border-color: transparent; box-shadow: 0 16px 40px -12px rgba(255, 61, 110, .8); }
   .act.nope .alt { display: none; }
@@ -386,9 +394,10 @@
   .c-card.ig .lbl { color: rgba(255,255,255,.8); }
   .c-card.ig .ig-ico { position: absolute; right: -30px; top: -30px; width: 190px; height: 190px; opacity: .16; transform: rotate(12deg); }
   .c-card.ig .btn { background: #fff; color: #17110f; align-self: flex-start; }
-  .digits { display: inline-flex; gap: 4px; margin-left: 4px; }
-  .digits i { display: inline-block; width: .62em; border-bottom: 3px solid var(--a1); animation: blink 1.2s steps(2) infinite; font-style: normal; }
-  .digits i:nth-child(2) { animation-delay: .3s; }
+  .digits { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+  .digits .gap { width: 8px; }
+  .digits i { display: inline-block; width: .58em; border-bottom: 3px solid var(--a1); animation: blink 1.2s steps(2) infinite; font-style: normal; }
+  .digits i:nth-child(even) { animation-delay: .3s; }
   @keyframes blink { 50% { border-color: transparent; } }
   .c-card .btn { align-self: flex-start; padding: 13px 20px; font-size: .92rem; }
 
@@ -534,7 +543,7 @@
     .hero-bg .col:nth-child(5) { display: block; }
     .lb-nav { display: grid; }
     .section { padding-top: 130px; }
-    .hero-content { padding-bottom: 120px; }
+    .hero-content { padding-top: 96px; padding-bottom: 84px; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
@@ -660,8 +669,8 @@
         </div>
         <div class="c-card reveal">
           <span class="lbl">Teléfono</span>
-          <span class="val"><span id="phoneTxt">+34 644 64 32</span><span class="digits" aria-label="dos dígitos ocultos"><i>&nbsp;</i><i>&nbsp;</i></span></span>
-          <a class="btn primary" id="askDigits" href="#" target="_blank" rel="noopener">Pídele los 2 últimos 😏</a>
+          <span class="val"><span class="digits" aria-label="número oculto"><i>&nbsp;</i><i>&nbsp;</i><i>&nbsp;</i><span class="gap"></span><i>&nbsp;</i><i>&nbsp;</i><span class="gap"></span><i>&nbsp;</i><i>&nbsp;</i><span class="gap"></span><i>&nbsp;</i><i>&nbsp;</i></span></span>
+          <a class="btn primary" id="askDigits" href="#" target="_blank" rel="noopener">Pídele su número 😏</a>
         </div>
         <div class="c-card reveal">
           <span class="lbl">Correo</span>
@@ -749,7 +758,6 @@
 const CONFIG = {
   instagramUser: "sergio_magdaleno_08",
   email: "sergio.magcub80@gmail.com",
-  telefonoVisible: "+34 644 64 32",
 
   // Captions personalizados (también sirven para fotos nuevas auto-detectadas)
   captions: {
@@ -783,6 +791,7 @@ const FOTOS_BASE = [
   { src: "foto19.jpeg", caption: "" },
   { src: "foto20.jpeg", caption: "" },
   { src: "foto21.jpeg", caption: "" },
+  { src: "foto22.jpeg", caption: "" },
   { src: "foto23.jpeg", caption: "" },
   { src: "foto27.jpeg", caption: "" },
   { src: "foto28.jpeg", caption: "El peor error de Sergio" },
@@ -841,7 +850,6 @@ const VIBES = ["👨‍🍳 Te cocino algo increíble", "🍸 Rey del vermú", "
   $('#matchIg').href = IG_DM;
   $('#matchIg').textContent = `Escríbele a @${CONFIG.instagramUser}`;
   $('#askDigits').href = IG_DM;
-  $('#phoneTxt').textContent = CONFIG.telefonoVisible;
   $('#mailTxt').textContent = CONFIG.email;
   $('#mailLink').href = `mailto:${CONFIG.email}?subject=${encodeURIComponent('Vengo de tu web 😏')}`;
 
@@ -1241,7 +1249,7 @@ const VIBES = ["👨‍🍳 Te cocino algo increíble", "🍸 Rey del vermú", "
   }
 
   function morphNope() {
-    nopeBtn.style.transform = '';
+    resetNopePos();
     nopeBtn.classList.add('morph');
     setTimeout(() => nopeBtn.classList.remove('morph'), 1500);
   }
@@ -1272,28 +1280,88 @@ const VIBES = ["👨‍🍳 Te cocino algo increíble", "🍸 Rey del vermú", "
     }
   }
 
-  /* Botón ❌ que se escapa */
-  const escapeLines = ['Uy, se me ha escapado 🙃', '¿Seguro? Piénsatelo 🤨', 'Ni el botón se lo cree 😂'];
-  function escapeNope() {
-    const dir = Math.random() > 0.5 ? 1 : -1;
-    const dx = dir * (55 + Math.random() * 60);
-    const dy = -(25 + Math.random() * 55);
-    nopeBtn.style.transform = `translate(${dx}px, ${dy}px) rotate(${dir * 14}deg)`;
-    clearTimeout(nopeBtn._t);
-    nopeBtn._t = setTimeout(() => { nopeBtn.style.transform = ''; }, 1500);
-    deck.escapes++;
+  /* Botón ❌ que se escapa del cursor en PC y al tocar en móvil */
+  const escapeLines = [
+    'Uy, se me ha escapado 🙃',
+    '¿Seguro? Piénsatelo 🤨',
+    'Ni el botón te deja rechazarlo 😂',
+    'Casi, pero en Cuéllar eso es ilegal 😏',
+    'Tu ratón quiere darle a ❤️, hazle caso'
+  ];
+  let nopeX = 0, nopeY = 0, lastEscapeAt = 0;
+
+  function resetNopePos() {
+    nopeX = 0; nopeY = 0;
+    nopeBtn.style.transform = '';
   }
+
+  function escapeNope(mx, my) {
+    const now = performance.now();
+    if (now - lastEscapeAt < 90) return;
+    lastEscapeAt = now;
+
+    const baseRect = nopeBtn.getBoundingClientRect();
+    const origCx = (baseRect.left + baseRect.width / 2) - nopeX;
+    const origCy = (baseRect.top + baseRect.height / 2) - nopeY;
+
+    // Elige una posición aleatoria dentro de un radio amplio que quede lejos del cursor
+    let bestX = 0, bestY = 0, bestDist = -1;
+    for (let k = 0; k < 10; k++) {
+      const candX = (Math.random() - 0.35) * 260; // entre -90px y +170px
+      const candY = -20 - Math.random() * 145;    // salta hacia arriba (-20px a -165px)
+      const cx = origCx + candX;
+      const cy = origCy + candY;
+      const d = (mx !== undefined && my !== undefined)
+        ? Math.hypot(cx - mx, cy - my)
+        : Math.hypot(candX - nopeX, candY - nopeY);
+      if (d > bestDist && Math.hypot(candX - nopeX, candY - nopeY) > 65) {
+        bestDist = d;
+        bestX = candX;
+        bestY = candY;
+      }
+    }
+
+    nopeX = bestX;
+    nopeY = bestY;
+    const rot = (bestX >= 0 ? 1 : -1) * (10 + Math.random() * 18);
+    nopeBtn.style.transform = `translate(${nopeX.toFixed(0)}px, ${nopeY.toFixed(0)}px) rotate(${rot.toFixed(0)}deg)`;
+
+    clearTimeout(nopeBtn._t);
+    nopeBtn._t = setTimeout(resetNopePos, 2400);
+
+    deck.escapes++;
+    if (deck.escapes === 1 || deck.escapes % 2 === 0) {
+      toast(escapeLines[(deck.escapes - 1) % escapeLines.length], 2200);
+    }
+  }
+
+  // En PC: detecta cuando el ratón se acerca al botón ❌ y lo esquiva al instante
+  document.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse' || mode !== 'tinder' || deck.busy) return;
+    const r = nopeBtn.getBoundingClientRect();
+    if (!r.width) return;
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+    if (dist < 64 && deck.escapes < 6) {
+      escapeNope(e.clientX, e.clientY);
+    }
+  }, { passive: true });
+
   nopeBtn.addEventListener('pointerenter', e => {
-    if (e.pointerType === 'mouse' && deck.escapes < 3 && !deck.busy) escapeNope();
+    if (e.pointerType === 'mouse' && deck.escapes < 6 && !deck.busy) {
+      escapeNope(e.clientX, e.clientY);
+    }
   });
-  nopeBtn.addEventListener('click', () => {
+
+  nopeBtn.addEventListener('click', e => {
     if (deck.busy) return;
-    if (deck.escapes < 2) {
-      escapeNope();
-      toast(escapeLines[(deck.escapes - 1) % escapeLines.length]);
+    if (deck.escapes < 3) {
+      escapeNope(e.clientX, e.clientY);
       return;
     }
-    deck.escapes = 1;
+    deck.escapes = 0;
+    resetNopePos();
     swipe('nope');
   });
   $('#btnLike').addEventListener('click', () => swipe('like'));
@@ -1460,10 +1528,10 @@ const VIBES = ["👨‍🍳 Te cocino algo increíble", "🍸 Rey del vermú", "
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeDlg();
   });
 
-  /* ---------- Pedir los 2 últimos dígitos ---------- */
+  /* ---------- Pedir el número ---------- */
   $('#askDigits').addEventListener('click', () => {
-    const msg = 'Hola Sergio 😏 Vengo de tu web. ¿Me pasas los 2 últimos dígitos de tu número?';
-    copyText(msg).then(ok => toast(ok ? 'Mensaje copiado ✅ Pégalo en su DM y espera los dígitos 😏' : 'Pídeselos por DM 😏', 3400));
+    const msg = 'Hola Sergio 😏 Vengo de tu web. ¿Me pasas tu número?';
+    copyText(msg).then(ok => toast(ok ? 'Mensaje copiado ✅ Pégalo en su DM y espera su número 😏' : 'Pídeselo por DM 😏', 3400));
   });
 
   /* ---------- Barra de progreso + dock ---------- */
